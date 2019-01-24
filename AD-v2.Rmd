@@ -1,0 +1,683 @@
+---
+title: "Etude des tags"
+output: 
+  html_document:
+    fig_width: 7
+    fig_height: 6
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+    code_folding: hide
+---
+
+![](images/noise_planet.png)
+
+```{r, echo=FALSE, message=FALSE, warning = FALSE, include=FALSE}
+#knitr::opts_chunk$set(error=TRUE)
+#chooseCRANmirror(graphics=FALSE, ind=1)
+```
+
+```{r, comment="", message=FALSE, warning=FALSE, echo=FALSE, include=FALSE}
+knitr::opts_chunk$set(cache=TRUE)
+knitr::opts_chunk$set(echo =FALSE)
+knitr::opts_knit$set(root.dir = gsub("/siteweb","/France 4 Juin",getwd()))
+# knitr::opts_chunk$set(fig.width = 800, fig.height = 600)
+library(knitr)
+library(rgdal)
+library(geojsonio) # geojson_read()
+library(sp)
+library(maps)
+library(ggmap) # cartes avec ggplot2
+library(maptools)
+library(ggplot2) # ggplot()
+library(tm) # text mining
+library(RColorBrewer)
+library(wordcloud) # nuage de mots
+library(plotly)
+library(sf)
+library(htmltools)
+```
+
+</br>
+</br>
+
+```{r, comment="", message=FALSE, warning=FALSE, echo=FALSE, include=FALSE}
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Bretagne"
+ledpt  <- "Morbihan"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+#tracks
+areas  <- as.data.frame(areas)
+points <- as.data.frame(points)
+tracks <- as.list(tracks)
+tracks2 <- st_read(paste0(nomf, ".tracks.geojson"))
+```
+
+```{r, comment="", message=FALSE, warning=FALSE, echo=FALSE}
+#mettre chaque variable dans une matrice/liste
+t<-length(tracks$features) #taille de la bdn 
+#mettre dans une matrice toutes les variables de propriété
+v=v2=v3=v4=v5=v6=v7=v8=v9<-c()
+l<-list()
+for (i in 1:t) {
+  v<-c(v,tracks$features[[i]]$properties$pk_track)
+  v2<-c(v2,tracks$features[[i]]$properties$time_ISO8601)
+  v3<-c(v3,tracks$features[[i]]$properties$time_epoch)
+  v4<-c(v4,tracks$features[[i]]$properties$track_uuid)
+  v5<-c(v5,tracks$features[[i]]$properties$gain)
+  v6<-c(v6,tracks$features[[i]]$properties$noise_level)
+  v7<-c(v7,tracks$features[[i]]$properties$pleasantness)
+  v8<-c(v8,tracks$features[[i]]$geometry$type)
+  
+  if (length(tracks$features[[i]]$properties$tags)>0){
+    vec<-c()
+    for (j in 1:(length(tracks$features[[i]]$properties$tags))){
+      vec<-c(vec,unlist(tracks$features[[i]]$properties$tags[j]))
+    }
+    l<-append(l,list(vec))
+  } 
+  else {
+    l<-append(l,list(c()))
+  }
+}
+p<-cbind(v,v2,v3,v4,v5,v6,v7,v8,l)
+tracks2<-as.data.frame(p)
+names(tracks2)<-c("pk_track","time_ISO8601","time_epoch","track_uuid","gain","noise_level","pleasantness","type","tags")
+tracks3<-unique(tracks2)
+```
+
+##Enregistrements intérieurs et extérieurs
+
+L'étude porte sur les enregistrements colléctés dans le Morbihan en Bretagne.
+
+</br>
+
+###Nombre total d'enregistrements
+```{r, comment="", message=FALSE, warning=FALSE, echo=TRUE}
+lestags <- list()
+cptot=0
+for(i in 1:length(tracks3$pk_track)) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+    cptot=cptot+1
+  }}
+cpti=0
+for (i in 1:length(tracks3$pk_track)){
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="indoor"){
+     cpti<-cpti+1
+      }
+}
+  }}
+cptot
+```
+###Nombre d'enregistrements à l'intérieur
+```{r, comment="", message=FALSE, warning=FALSE, echo=FALSE}
+cpti
+```
+###Nombre d'enregistrements à l'extérieur
+```{r, comment="", message=FALSE, warning=FALSE, echo=FALSE}
+cpto<-cptot-cpti
+cpto
+```
+
+
+###Représentation graphique
+```{r, comment="", message=FALSE, warning=FALSE, echo=TRUE}
+slices <- c(cpti,cpto)
+lbls <- c("Intérieur","Extérieur")
+pct <- round((slices/cptot)*100)
+lbls <-paste(lbls, pct)
+lbls <-paste(lbls, "%", sep="")
+couleur <- c("#FF6666","#CCCCCC")
+pie(slices,labels=lbls,col=couleur,main="Répartition Intérieur/Extérieur", lty =0)
+```
+
+##Enregistrements mobiles et immobiles
+
+Est-ce que les utilisateurs bougent lors de leurs enregistrements ou restent-ils au même endroit ?
+Voici les résultats pour le Morbihan :
+</br>
+
+###Nombre total d'enregistrements
+```{r, comment="", message=FALSE, warning=FALSE, echo=TRUE}
+cpttype=0
+for(i in 1:length(tracks3$pk_track)) {
+  type<-c(tracks3$type,tracks3$type[[i]])
+  cpttype=cpttype+1
+}
+cpttype
+```
+###Nombre d'enregistrements mobiles
+```{r, comment="", message=FALSE, warning=FALSE, echo=TRUE}
+cptmob=0
+for(i in 1:cpttype){
+  if (tracks3$type[[i]]=="Polygon"){
+    cptmob=cptmob+1
+    }
+  }
+cptmob
+```
+###Nombre d'enregistrements immobiles
+```{r, comment="", message=FALSE, warning=FALSE, echo=TRUE}
+cpttype-cptmob
+```
+###Représentation graphique
+```{r, comment="", message=FALSE, warning=FALSE, echo=TRUE}
+slices <- c(cpttype-cptmob,cptmob)
+lbls <- c("Immobile","Mobile")
+pct <- round((slices/cpttype)*100)
+lbls <-paste(lbls, pct)
+lbls <-paste(lbls, "%", sep="")
+couleur <- c("#CCFF99","#99CCFF")
+pie(slices,labels=lbls,col=couleur,main="Répartition Mobile/Immobile", lty =0)
+```
+Nous observons que 3/4 des enregistrements sont mobiles et 1/4 des enregistrements sont immobiles. Nous pouvons conclure que les morbihannais aiment bien bouger.
+</br>
+</br>
+##Pleasantness
+Analyse de la variable pleasantness, l'utilisateur de l'application choisi le niveau "d'agréabilité" entre 0, 25, 50, 75, 100.  
+
+###Niveau 1 : [0;25]
+```{r, comment="", message=FALSE, warning=FALSE, echo=TRUE}
+tags1<-c()
+for (i in 1:length(tracks3$pk_track)) {
+  if (unlist(tracks3$pleasantness[i]) <= 25) 
+    tags1 <- c(tags1, unlist(tracks3$tags[i]))
+}
+#tags1
+table(tags1)
+
+t1 <- unlist(tags1)
+t1 <- t1[t1!="test"]
+ap.corpus <- Corpus(DataframeSource(data.frame(doc_id="tags", text=t1)))
+ap.tdm <- TermDocumentMatrix(ap.corpus)
+ap.m <- as.matrix(ap.tdm)
+ap.v <- sort(rowSums(ap.m),decreasing=TRUE)
+ap.d <- data.frame(word = names(ap.v),freq=ap.v)
+pal2 <- brewer.pal(4,"Dark2")
+wordcloud(ap.d$word,ap.d$freq, scale=c(4,1), min.freq=0,
+          max.words=5, random.order=FALSE, rot.per=.15, colors=pal2)
+```
+
+###Niveau 2 : [26;50]
+```{r, comment="", message=FALSE, warning=FALSE, echo=TRUE}
+tags2<-c()
+for (i in 1:length(tracks3$pk_track)) {
+  if (unlist(tracks3$pleasantness[i]) > 25 & unlist(tracks3$pleasantness[i])<=50)
+    tags2 <- c(tags2, unlist(tracks3$tags[i]))
+}
+#tags2
+table(tags2)
+
+t2 <- unlist(tags2)
+t2 <- t2[t2!="test"]
+ap.corpus <- Corpus(DataframeSource(data.frame(doc_id="tags", text=t2)))
+ap.tdm <- TermDocumentMatrix(ap.corpus)
+ap.m <- as.matrix(ap.tdm)
+ap.v <- sort(rowSums(ap.m),decreasing=TRUE)
+ap.d <- data.frame(word = names(ap.v),freq=ap.v)
+pal2 <- brewer.pal(5,"Dark2")
+wordcloud(ap.d$word,ap.d$freq, scale=c(4,1), min.freq=0,
+          max.words=5, random.order=FALSE, rot.per=.15, colors=pal2)
+```
+
+###Niveau 3 : [51;75]
+```{r, comment="", message=FALSE, warning=FALSE, echo=TRUE}
+tags3<-c()
+for (i in 1:length(tracks3$pk_track)) {
+  if (unlist(tracks3$pleasantness[i]) > 50 & unlist(tracks3$pleasantness[i])<=75) 
+    tags3 <- c(tags3, unlist(tracks3$tags[i]))
+}
+#tags3
+table(tags3)
+
+t3 <- unlist(tags3)
+t3 <- t3[t3!="test"]
+ap.corpus <- Corpus(DataframeSource(data.frame(doc_id="tags", text=t3)))
+ap.tdm <- TermDocumentMatrix(ap.corpus)
+ap.m <- as.matrix(ap.tdm)
+ap.v <- sort(rowSums(ap.m),decreasing=TRUE)
+ap.d <- data.frame(word = names(ap.v),freq=ap.v)
+pal2 <- brewer.pal(3,"Dark2")
+wordcloud(ap.d$word,ap.d$freq, scale=c(4,1), min.freq=0,
+          max.words=5, random.order=FALSE, rot.per=.15, colors=pal2)
+```
+
+###Niveau 4 : [76;100]
+```{r, comment="", message=FALSE, warning=FALSE, echo=FALSE}
+tags4<-c()
+for (i in 1:length(tracks3$pk_track)) {
+  if (unlist(tracks3$pleasantness[i]) > 75) 
+  tags4 <- c(tags4, unlist(tracks3$tags[i]))
+}
+#tags4
+table(tags4)
+
+t4 <- unlist(tags4)
+t4 <- t4[t4!="test"]
+ap.corpus <- Corpus(DataframeSource(data.frame(doc_id="tags", text=t4)))
+ap.tdm <- TermDocumentMatrix(ap.corpus)
+ap.m <- as.matrix(ap.tdm)
+ap.v <- sort(rowSums(ap.m),decreasing=TRUE)
+ap.d <- data.frame(word = names(ap.v),freq=ap.v)
+pal2 <- brewer.pal(8,"Dark2")
+wordcloud(ap.d$word,ap.d$freq, scale=c(4,1), min.freq=0,
+          max.words=5, random.order=FALSE, rot.per=.15, colors=blues9)
+```
+
+##Proportion de tags pour chaque niveau de pleasantness
+
+```{r, comment="", message=FALSE, warning=FALSE, echo=TRUE} 
+lestags <- list()
+nbrt1=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i])<=25) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="chatting"){
+     nbrt1<-nbrt1+1
+  } } }} }
+#nbrt1
+
+nbrt2=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i]) > 25 & unlist(tracks3$pleasantness[i])<=50) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="chatting"){
+     nbrt2<-nbrt2+1
+  } } }} }
+#nbrt2
+
+nbrt3=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i]) > 50 & unlist(tracks3$pleasantness[i])<=75) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="chatting"){
+     nbrt3<-nbrt3+1
+  } } }} }
+#nbrt3
+
+nbrt4=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i])>75) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="chatting"){
+     nbrt4<-nbrt4+1
+  } } }} }
+#nbrt4
+
+tagl1<-(100*nbrt1)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+tagl2<-(100*nbrt2)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+tagl3<-(100*nbrt3)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+tagl4<-(100*nbrt4)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+
+dataChat<-data.frame(tagl1,tagl2,tagl3,tagl4)
+x <- apply(dataChat, 2, sum)
+barplot(as.matrix(x), horiz=TRUE, col=blues9, legend.text=FALSE)
+title(main="Proportion (en %) de « chatting » pour chaque niveau de pleasantness")
+
+#barplot(dataChat)
+
+
+```
+
+```{r, comment="", message=FALSE, warning=FALSE, echo=TRUE}
+lestags <- list()
+nbrt1=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i])<=25) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="indoor"){
+     nbrt1<-nbrt1+1
+  } } }} }
+#nbrt1
+
+nbrt2=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i]) > 25 & unlist(tracks3$pleasantness[i])<=50) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="indoor"){
+     nbrt2<-nbrt2+1
+  } } }} }
+#nbrt2
+
+nbrt3=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i]) > 50 & unlist(tracks3$pleasantness[i])<=75) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="indoor"){
+     nbrt3<-nbrt3+1
+  } } }} }
+#nbrt3
+
+nbrt4=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i])>75) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="indoor"){
+     nbrt4<-nbrt4+1
+  } } }} }
+#nbrt4
+
+tagl1<-(100*nbrt1)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+tagl2<-(100*nbrt2)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+tagl3<-(100*nbrt3)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+tagl4<-(100*nbrt4)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+
+dataChat<-data.frame(tagl1,tagl2,tagl3,tagl4)
+x <- apply(dataChat, 2, sum)
+barplot(as.matrix(x), horiz=TRUE, col=blues9, legend.text=FALSE)
+title(main="Proportion de « indoor » (en %) pour chaque niveau de pleasantness")
+```
+```{r} 
+lestags <- list()
+nbrt1f=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i])<=25) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="footsteps"){
+     nbrt1f<-nbrt1f+1
+  } } }} }
+#nbrt1f
+
+nbrt2f=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i]) > 25 & unlist(tracks3$pleasantness[i])<=50) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="footsteps"){
+     nbrt2f<-nbrt2f+1
+  } } }} }
+#nbrt2f
+
+nbrt3f=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i]) > 50 & unlist(tracks3$pleasantness[i])<=75) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="footsteps"){
+     nbrt3f<-nbrt3f+1
+  } } }} }
+#nbrt3f
+
+nbrt4f=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i])>75) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="footsteps"){
+     nbrt4f<-nbrt4f+1
+  } } }} }
+#nbrt4f
+
+tagl1f<-(100*nbrt1f)/sum(nbrt1f+nbrt2f+nbrt3f+nbrt4f)
+tagl2f<-(100*nbrt2f)/sum(nbrt1f+nbrt2f+nbrt3f+nbrt4f)
+tagl3f<-(100*nbrt3f)/sum(nbrt1f+nbrt2f+nbrt3f+nbrt4f)
+tagl4f<-(100*nbrt4f)/sum(nbrt1f+nbrt2f+nbrt3f+nbrt4f)
+
+dataChat<-data.frame(tagl1f,tagl2f,tagl3f,tagl4f)
+x <- apply(dataChat, 2, sum)
+barplot(as.matrix(x), horiz=TRUE, col=blues9, legend.text=FALSE)
+title(main="Proportion (en %) de « footsteps » pour chaque niveau de pleasantness")
+```
+```{r} 
+lestags <- list()
+nbrt1=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i])<=25) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="road"){
+     nbrt1<-nbrt1+1
+  } } }} }
+#nbrt1
+
+nbrt2=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i]) > 25 & unlist(tracks3$pleasantness[i])<=50) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="road"){
+     nbrt2<-nbrt2+1
+  } } }} }
+#nbrt2
+
+nbrt3=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i]) > 50 & unlist(tracks3$pleasantness[i])<=75) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="road"){
+     nbrt3<-nbrt3+1
+  } } }} }
+#nbrt3
+
+nbrt4=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i])>75) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="road"){
+     nbrt4<-nbrt4+1
+  } } }} }
+#nbrt4
+
+tagl1<-(100*nbrt1)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+tagl2<-(100*nbrt2)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+tagl3<-(100*nbrt3)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+tagl4<-(100*nbrt4)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+
+dataChat<-data.frame(tagl1,tagl2,tagl3,tagl4)
+x <- apply(dataChat, 2, sum)
+barplot(as.matrix(x), horiz=TRUE, col=blues9, legend.text=FALSE)
+title(main="Proportion (en %) de « road » pour chaque niveau de pleasantness")
+```
+
+```{r, comment="", message=FALSE, warning=FALSE, echo=TRUE} 
+lestags <- list()
+nbrt1=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i])<=25) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="wind"){
+     nbrt1<-nbrt1+1
+  } } }} }
+#nbrt1
+
+nbrt2=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i]) > 25 & unlist(tracks3$pleasantness[i])<=50) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="wind"){
+     nbrt2<-nbrt2+1
+  } } }} }
+#nbrt2
+
+nbrt3=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i]) > 50 & unlist(tracks3$pleasantness[i])<=75) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="wind"){
+     nbrt3<-nbrt3+1
+  } } }} }
+#nbrt3
+
+nbrt4=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i])>75) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="wind"){
+     nbrt4<-nbrt4+1
+  } } }} }
+#nbrt4
+
+tagl1<-(100*nbrt1)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+tagl2<-(100*nbrt2)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+tagl3<-(100*nbrt3)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+tagl4<-(100*nbrt4)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+
+dataChat<-data.frame(tagl1,tagl2,tagl3,tagl4)
+x <- apply(dataChat, 2, sum)
+barplot(as.matrix(x), horiz=TRUE,col=blues9, legend.text=FALSE)
+title(main="Proportion (en %) de « wind » pour chaque niveau de pleasantness")
+```
+```{r} 
+lestags <- list()
+nbrt1=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i])<=25) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="animals"){
+     nbrt1<-nbrt1+1
+  } } }} }
+#nbrt1
+
+nbrt2=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i]) > 25 & unlist(tracks3$pleasantness[i])<=50) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="animals"){
+     nbrt2<-nbrt2+1
+  } } }} }
+#nbrt2
+
+nbrt3=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i]) > 50 & unlist(tracks3$pleasantness[i])<=75) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="animals"){
+     nbrt3<-nbrt3+1
+  } } }} }
+#nbrt3
+
+nbrt4=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i])>75) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+  for (j in 1:length(tracks3$tags[i][[1]])){
+  if (tracks3$tags[i][[1]][[j]]=="animals"){
+     nbrt4<-nbrt4+1
+  } } }} }
+#nbrt4
+
+tagl1<-(100*nbrt1)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+tagl2<-(100*nbrt2)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+tagl3<-(100*nbrt3)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+tagl4<-(100*nbrt4)/sum(nbrt1+nbrt2+nbrt3+nbrt4)
+
+dataChat<-data.frame(tagl1,tagl2,tagl3,tagl4)
+x <- apply(dataChat, 2, sum)
+barplot(as.matrix(x), horiz=TRUE, col=blues9, legend.text=FALSE)
+title(main="Proportion (en %) de « animals » pour chaque niveau de pleasantness")
+```
+```{r} 
+lestags <- list()
+nbrt1tot=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i])<=25) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+     nbrt1tot<-nbrt1tot+1
+  } } }
+#nbrt1tot
+
+nbrt2tot=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i]) > 25 & unlist(tracks3$pleasantness[i])<=50) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+    nbrt2tot<-nbrt2tot+1
+  }} }
+#nbrt2tot
+
+nbrt3tot=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i]) > 50 & unlist(tracks3$pleasantness[i])<=75) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+     nbrt3tot<-nbrt3tot+1
+  } } }
+#nbrt3tot
+
+nbrt4tot=0
+for (i in 1:length(tracks3$pk_track)){
+  if (unlist(tracks3$pleasantness[i])>75) {
+  if (is.null(tracks3$tags[i][[1]])==FALSE){
+     nbrt4tot<-nbrt4tot+1
+  } } }
+#nbrt4tot
+
+tagl1tot<-(100*nbrt1tot)/sum(nbrt1tot+nbrt2tot+nbrt3tot+nbrt4tot)
+tagl2tot<-(100*nbrt2tot)/sum(nbrt1tot+nbrt2tot+nbrt3tot+nbrt4tot)
+tagl3tot<-(100*nbrt3tot)/sum(nbrt1tot+nbrt2tot+nbrt3tot+nbrt4tot)
+tagl4tot<-(100*nbrt4tot)/sum(nbrt1tot+nbrt2tot+nbrt3tot+nbrt4tot)
+
+dataChat<-data.frame(tagl1tot,tagl2tot,tagl3tot,tagl4tot)
+x <- apply(dataChat, 2, sum)
+barplot(as.matrix(x), horiz=TRUE, col=blues9, legend.text=FALSE)
+title(main="Proportion (en %) de tags pour chaque niveau de pleasantness")
+```
+
+</br>
+
+## Niveau sonore en fonction des tags
+
+</br>
+
+```{r, comment="", message = FALSE, warning = FALSE, echo = TRUE}
+#package necessaires
+library(sf)
+library(ggplot2)
+#code
+tags<-as.data.frame((table(unlist(tracks2$tags))[order(table(unlist(tracks2$tags)),decreasing = TRUE)]))
+tags<-as.character(tags$Var1[tags$Var1!="test"][1:10])
+b<-list()
+for(i in 1:10){
+  bruit<-c()
+  for(j in 1:dim(tracks2)[1]){
+    if (length(tracks2$tags[j][[1]])>0){
+      for(k in 1:length(tracks2$tags[j][[1]])){
+        if (tracks2$tags[j][[1]][k]==tags[i]){
+          bruit<-c(bruit,tracks2$noise_level[j])
+        }
+      }
+    }
+  }
+  b<-append(b,list(unlist(bruit)))
+}
+tgs<-c()
+for(i in 1:10){
+  for(j in 1:length(b[i][[1]])){
+    tgs<-c(tgs,tags[i])
+  }
+}
+v1<-unlist(b)
+v1<-as.numeric(v1)
+box<-matrix(c(v1,tgs),nrow = length(v1),ncol = 2,byrow = FALSE)
+box<-as.data.frame(box)
+box$V1<-as.numeric(as.character(box$V1))
+names(box)<-c("Niveau sonore(db)","Tags")
+#resultant
+graph<-ggplot(box,aes(x = Tags,y=`Niveau sonore(db)`))+geom_boxplot()+labs(title = "Boxplots du niveau sonore en fonction des 10 tags les plus utilisés")
+ggplotly(graph,tooltip="all",dynamicTicks=FALSE)
+
+```
+

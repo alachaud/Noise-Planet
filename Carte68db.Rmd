@@ -1,0 +1,2757 @@
+---
+title: "Catographie pour l'analyse des données sonores"
+output: 
+  html_document:
+    fig_width: 7
+    fig_height: 6
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+    code_folding: hide
+---
+
+![](images/noise_planet.png)
+```{r, , echo = FALSE}
+library(htmltools)
+```
+
+</br>
+</br>
+
+Voici différentes cartes de données sonores. Elles permettent une visualisation géographique à différentes échelles.
+
+</br>
+
+##Nombres d'areas dont le niveau de bruit atteint 68 decibels
+```{r setup, include=FALSE}
+options(warn=-1)
+# knitr::opts_chunk$set(error=TRUE)
+# chooseCRANmirror(graphics=FALSE, ind=1)
+
+library(knitr)
+#install.packages("sf", repos = "http://cran.us.r-project.org")
+#install.packages("leaflet", repos = "http://cran.us.r-project.org")
+knitr::opts_chunk$set(cache=TRUE)
+knitr::opts_chunk$set(echo=TRUE)
+knitr::opts_knit$set(root.dir = gsub("/siteweb","/France 4 Juin",getwd()))
+# knitr::opts_chunk$set(fig.width = 800, fig.height = 600)
+library(rgdal)
+library(geojsonio) # geojson_read()
+library(sp)
+library(maps)
+library(ggmap) # cartes avec ggplot2
+library(maptools)
+library(ggplot2) # ggplot()
+library(tm) # text mining
+library(RColorBrewer)
+library(wordcloud) # nuage de mots
+library(plotly) # plot_ly()
+library(leaflet)
+library(sf)
+
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Bretagne"
+ledpt  <- "Morbihan"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+#points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+#tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+#points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+# setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+# knitr::opts_knit$set(root.dir = "P:/e_17_noisePlanet_a/France 4 Juin")
+areas <- sf::st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p<-areas[areas$laeq>67,]
+d<-as.data.frame(unlist(p$geometry), p$laeq)
+p<- as.data.frame (unlist(d))
+length(unlist(d))
+lng <- c()
+for (i in seq (1,length(p$`unlist(d)`),by=14))
+{lng<-c(lng,p$`unlist(d)`[i])}
+lat <- c()
+for (i in seq (8,length(p$`unlist(d)`),by=14))
+{lat<-c(lat,p$`unlist(d)`[i])}
+carte1<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Bretagne"
+ledpt  <- "Finistère"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+#points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+#tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte2<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Bretagne"
+ledpt  <- "Côtes-d'Armor"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+#points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+#tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+#points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas3 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p3<-areas3[areas3$laeq>67,]
+d3<-as.data.frame(unlist(p3$geometry), p3$laeq)
+p3<- as.data.frame (unlist(d3))
+length(unlist(d3))
+lng <- c()
+for (i in seq (1,length(p3$`unlist(d3)`),by=14))
+{lng<-c(lng,p3$`unlist(d3)`[i])}
+lat <- c()
+for (i in seq (8,length(p3$`unlist(d3)`),by=14))
+{lat<-c(lat,p3$`unlist(d3)`[i])}
+carte3<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Bretagne"
+ledpt  <- "Ille-et-Vilaine"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+#points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+#tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+#points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas4 <- st_read(quiet=TRUE ,paste0(nomf, ".areas.geojson"))
+p4<-areas4[areas4$laeq>67,]
+d4<-as.data.frame(unlist(p4$geometry), p4$laeq)
+p4<- as.data.frame (unlist(d4))
+length(unlist(d4))
+lng <- c()
+for (i in seq (1,length(p4$`unlist(d4)`),by=14))
+{lng<-c(lng,p4$`unlist(d4)`[i])}
+lat <- c()
+for (i in seq (8,length(p4$`unlist(d4)`),by=14))
+{lat<-c(lat,p4$`unlist(d4)`[i])}
+carte4<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Aquitaine"
+ledpt  <- "Gironde"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+#points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+#tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+#points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas5 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p5<-areas5[areas5$laeq>67,]
+d5<-as.data.frame(unlist(p5$geometry), p5$laeq)
+p5<- as.data.frame (unlist(d5))
+length(unlist(d5))
+lng <- c()
+for (i in seq (1,length(p5$`unlist(d5)`),by=14))
+{lng<-c(lng,p5$`unlist(d5)`[i])}
+lat <- c()
+for (i in seq (8,length(p5$`unlist(d5)`),by=14))
+{lat<-c(lat,p5$`unlist(d5)`[i])}
+carte5<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Aquitaine"
+ledpt  <- "Dordogne"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+#points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+#tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+#points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas6 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p6<-areas6[areas6$laeq>67,]
+d6<-as.data.frame(unlist(p6$geometry), p6$laeq)
+p6<- as.data.frame (unlist(d6))
+length(unlist(d6))
+lng <- c()
+for (i in seq (1,length(p6$`unlist(d6)`),by=14))
+{lng<-c(lng,p6$`unlist(d6)`[i])}
+lat <- c()
+for (i in seq (8,length(p6$`unlist(d6)`),by=14))
+{lat<-c(lat,p6$`unlist(d6)`[i])}
+carte6<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Aquitaine"
+ledpt  <- "Lot-et-Garonne"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte7<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Aquitaine"
+ledpt  <- "Landes"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte8<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Aquitaine"
+ledpt  <- "Pyrénées-Atlantiques"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte9<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Alsace"
+ledpt  <- "Haut-Rhin"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+#points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+#tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+#points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte10<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Alsace"
+ledpt  <- "Bas-Rhin"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+#points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+#tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+#points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte11<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Auvergne"
+ledpt  <- "Allier"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+#points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+#tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+#points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte12<-data.frame(lat,lng)
+
+# setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+# lepays <- "France"
+# lareg  <- "Auvergne"
+# ledpt  <- "Cantal"
+# nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# # sp : SpatialPointsDataFrame
+# areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# #points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# #tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+# areas  <- as.data.frame(areas)
+# #points <- as.data.frame(points)
+# # tracks <- as.data.frame(tracks)
+# 
+# setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+# areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+# p2<-areas2[areas2$laeq>67,]
+# d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+# p2<- as.data.frame (unlist(d2))
+# length(unlist(d2))
+# lng <- c()
+# for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+# {lng<-c(lng,p2$`unlist(d2)`[i])}
+# lat <- c()
+# for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+# {lat<-c(lat,p2$`unlist(d2)`[i])}
+# carte13<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Auvergne"
+ledpt  <- "Haute-Loire"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte14<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Auvergne"
+ledpt  <- "Puy-de-Dôme"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte15<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Basse-Normandie"
+ledpt  <- "Calvados"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte16<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Basse-Normandie"
+ledpt  <- "Manche"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte17<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Basse-Normandie"
+ledpt  <- "Orne"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte94<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Haute-Normandie"
+ledpt  <- "Eure"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte95<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Haute-Normandie"
+ledpt  <- "Seine-Maritime"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte18<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Bourgogne"
+ledpt  <- "Côte-d'Or"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte19<-data.frame(lat,lng)
+
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Bourgogne"
+ledpt  <- "Nièvre"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte20<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Bourgogne"
+ledpt  <- "Saône-et-Loire"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte21<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Bourgogne"
+ledpt  <- "Yonne"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte22<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Centre"
+ledpt  <- "Cher"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte96<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Centre"
+ledpt  <- "Eure-et-Loir"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte23<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Centre"
+ledpt  <- "Indre"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte37<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Centre"
+ledpt  <- "Indre-et-Loire"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte24<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Centre"
+ledpt  <- "Loiret"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte25<-data.frame(lat,lng)
+
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Centre"
+ledpt  <- "Loir-et-Cher"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte26<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Champagne-Ardenne"
+ledpt  <- "Ardennes"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte27<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Champagne-Ardenne"
+ledpt  <- "Aube"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte28<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Champagne-Ardenne"
+ledpt  <- "Haute-Marne"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte29<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Champagne-Ardenne"
+ledpt  <- "Marne"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte30<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Corse"
+ledpt  <- "Corse-du-Sud"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte31<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Corse"
+ledpt  <- "Haute-Corse"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte32<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Franche-Comté"
+ledpt  <- "Doubs"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte33<-data.frame(lat,lng)
+
+# setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+# lepays <- "France"
+# lareg  <- "Franche-ComtÃÂÃÂ©"
+# ledpt  <- "Haute-SaÃÂÃÂ´ne"
+# nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# # sp : SpatialPointsDataFrame
+# areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+# areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# # tracks <- as.data.frame(tracks)
+# 
+# setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+# areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+# p2<-areas2[areas2$laeq>67,]
+# d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+# p2<- as.data.frame (unlist(d2))
+# length(unlist(d2))
+# lng <- c()
+# for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+# {lng<-c(lng,p2$`unlist(d2)`[i])}
+# lat <- c()
+# for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+# {lat<-c(lat,p2$`unlist(d2)`[i])}
+# carte34<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Franche-Comté"
+ledpt  <- "Jura"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte35<-data.frame(lat,lng)
+
+# setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+# lepays <- "France"
+# lareg  <- "Franche-ComtÃÂÃÂ© "
+# ledpt  <- "Territoire de Belfort"
+# nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# # sp : SpatialPointsDataFrame
+# areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+# areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# # tracks <- as.data.frame(tracks)
+# 
+# setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+# areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+# p2<-areas2[areas2$laeq>67,]
+# d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+# p2<- as.data.frame (unlist(d2))
+# length(unlist(d2))
+# lng <- c()
+# for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+# {lng<-c(lng,p2$`unlist(d2)`[i])}
+# lat <- c()
+# for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+# {lat<-c(lat,p2$`unlist(d2)`[i])}
+# carte36<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Île-de-France"
+ledpt  <- "Essonne"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte38<-data.frame(lat,lng)
+
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Île-de-France"
+ledpt  <- "Hauts-de-Seine"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte39<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Île-de-France"
+ledpt  <- "Paris"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte40<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Île-de-France"
+ledpt  <- "Seine-et-Marne"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte41<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Île-de-France"
+ledpt  <- "Seine-Saint-Denis"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte42<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Île-de-France"
+ledpt  <- "Val-de-Marne"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte43<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Île-de-France"
+ledpt  <- "Val-d'Oise"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte44<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Île-de-France"
+ledpt  <- "Yvelines"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte45<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Languedoc-Roussillon"
+ledpt  <- "Aude"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte46<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Languedoc-Roussillon"
+ledpt  <- "Gard"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte47<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Languedoc-Roussillon"
+ledpt  <- "Hérault"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte48<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Languedoc-Roussillon"
+ledpt  <- "Lozère"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte49<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Languedoc-Roussillon"
+ledpt  <- "Pyrénées-Orientales"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte50<-data.frame(lat,lng)
+
+# setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+# lepays <- "France"
+# lareg  <- "Limousin"
+# ledpt  <- "CorrÃÂÃÂ¨ze"
+# nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# # sp : SpatialPointsDataFrame
+# areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+# areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# # tracks <- as.data.frame(tracks)
+# 
+# setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+# areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+# p2<-areas2[areas2$laeq>67,]
+# d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+# p2<- as.data.frame (unlist(d2))
+# length(unlist(d2))
+# lng <- c()
+# for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+# {lng<-c(lng,p2$`unlist(d2)`[i])}
+# lat <- c()
+# for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+# {lat<-c(lat,p2$`unlist(d2)`[i])}
+# carte51<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Limousin"
+ledpt  <- "Creuse"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte52<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Limousin"
+ledpt  <- "Haute-Vienne"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte53<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Lorraine"
+ledpt  <- "Meurthe-et-Moselle"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte54<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Lorraine"
+ledpt  <- "Meuse"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte55<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Lorraine"
+ledpt  <- "Moselle"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte56<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Lorraine"
+ledpt  <- "Vosges"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte57<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Midi-Pyrénées"
+ledpt  <- "Ariège"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte59<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Midi-Pyrénées"
+ledpt  <- "Aveyron"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte60<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Midi-Pyrénées"
+ledpt  <- "Gers"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte58<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Midi-Pyrénées"
+ledpt  <- "Haute-Garonne"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte61<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Midi-Pyrénées"
+ledpt  <- "Hautes-Pyrénées"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte62<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Midi-Pyrénées"
+ledpt  <- "Lot"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte63<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Midi-Pyrénées"
+ledpt  <- "Tarn"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte64<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Midi-Pyrénées"
+ledpt  <- "Tarn-et-Garonne"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte65<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Nord-Pas-de-Calais"
+ledpt  <- "Nord"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte66<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Nord-Pas-de-Calais"
+ledpt  <- "Pas-de-Calais"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte67<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Pays de La Loire"
+ledpt  <- "Loire-Atlantique"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte68<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Pays de La Loire"
+ledpt  <- "Maine-et-Loire"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte69<-data.frame(lat,lng)
+
+# setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+# lepays <- "France"
+# lareg  <- "Pays de La Loire"
+# ledpt  <- "Mayenne"
+# nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# # sp : SpatialPointsDataFrame
+# areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+# areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# # tracks <- as.data.frame(tracks)
+# 
+# setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+# areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+# p2<-areas2[areas2$laeq>67,]
+# d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+# p2<- as.data.frame (unlist(d2))
+# length(unlist(d2))
+# lng <- c()
+# for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+# {lng<-c(lng,p2$`unlist(d2)`[i])}
+# lat <- c()
+# for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+# {lat<-c(lat,p2$`unlist(d2)`[i])}
+# carte70<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Pays de La Loire"
+ledpt  <- "Sarthe"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte71<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Pays de La Loire"
+ledpt  <- "Vendée"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte72<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Picardie"
+ledpt  <- "Aisne"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte73<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Picardie"
+ledpt  <- "Oise"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte74<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Picardie"
+ledpt  <- "Somme"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte75<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Poitou-Charentes"
+ledpt  <- "Charente"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte76<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Poitou-Charentes"
+ledpt  <- "Charente-Maritime"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte77<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Poitou-Charentes"
+ledpt  <- "Deux-Sèvres"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte78<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Poitou-Charentes"
+ledpt  <- "Vienne"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte79<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Provence-Alpes-Côte d'Azur"
+ledpt  <- "Alpes-de-Haute-Provence"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte80<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Provence-Alpes-Côte d'Azur"
+ledpt  <- "Alpes-Maritimes"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte81<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Provence-Alpes-Côte d'Azur"
+ledpt  <- "Bouches-du-Rhône"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte82<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Provence-Alpes-Côte d'Azur"
+ledpt  <- "Hautes-Alpes"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte83<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Provence-Alpes-Côte d'Azur"
+ledpt  <- "Var"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte84<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Provence-Alpes-Côte d'Azur"
+ledpt  <- "Vaucluse"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte85<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Rhône-Alpes"
+ledpt  <- "Ain"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte86<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Rhône-Alpes"
+ledpt  <- "Ardèche"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte87<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Rhône-Alpes"
+ledpt  <- "Drôme"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte88<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Rhône-Alpes"
+ledpt  <- "Haute-Savoie"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte89<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Rhône-Alpes"
+ledpt  <- "Isère"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte90<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Rhône-Alpes"
+ledpt  <- "Loire"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte91<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Rhône-Alpes"
+ledpt  <- "Rhône"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte92<-data.frame(lat,lng)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Rhône-Alpes"
+ledpt  <- "Savoie"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+# points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+# tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+areas  <- as.data.frame(areas)
+# points <- as.data.frame(points)
+# tracks <- as.data.frame(tracks)
+
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+areas2 <- st_read(quiet=TRUE, paste0(nomf, ".areas.geojson"))
+p2<-areas2[areas2$laeq>67,]
+d2<-as.data.frame(unlist(p2$geometry), p2$laeq)
+p2<- as.data.frame (unlist(d2))
+length(unlist(d2))
+lng <- c()
+for (i in seq (1,length(p2$`unlist(d2)`),by=14))
+{lng<-c(lng,p2$`unlist(d2)`[i])}
+lat <- c()
+for (i in seq (8,length(p2$`unlist(d2)`),by=14))
+{lat<-c(lat,p2$`unlist(d2)`[i])}
+carte93<-data.frame(lat,lng)
+
+carte <- rbind(carte1,carte2,carte3,carte4,carte5,carte6,carte7,carte8,carte9,carte10,carte11,carte12,carte14,carte15,carte16,carte17,carte18,carte19,carte20,carte21,carte22,carte23,carte24,carte25,carte26,carte27,carte28,carte29,carte30,carte31,carte32,carte33,carte35,carte37,carte38,carte39,carte40,carte41,carte42,carte43,carte44,carte45,carte46,carte47,carte48,carte49,carte50,carte52,carte53,carte54,carte55,carte56,carte57,carte58,carte59,carte60,carte61,carte62,carte63,carte64,carte65,carte66,carte67,carte68,carte69,carte71,carte72,carte73,carte74,carte75,carte76,carte77,carte78,carte79,carte80,carte81,carte82,carte83,carte84,carte85,carte86,carte87,carte88,carte89,carte90,carte91,carte92,carte93,carte94,carte95,carte96)
+#carte13,carte36,carte70,carte51,carte34
+```
+
+</br>
+
+La pollution sonore est de plus en plus présente alors voici une carte indiquant les endroits où le niveau de bruit dépasse le seuil au-delà duquel le son est considéré comme étant une nuisance. Ce seuil se situe à 68 dB.  
+A l'échelle nationale, le seuil est dépassé dans les grandes villes. A une échelle régionale, pour la Bretagne par exemple le seuil est dépassé sur les côtes.
+
+</br>
+
+```{r, comment="", message = FALSE, warning = FALSE}
+leaflet(carte, options = leafletOptions(minZoom = 1, maxZoom = 20)) %>% addTiles() %>% addMarkers(
+  clusterOptions = markerClusterOptions(iconCreateFunction =
+                                      JS("
+                                          function(cluster) {
+                                             return new L.DivIcon({
+                                               html: '<div style=\"background-color:rgba(255, 0, 0, 0.75)\"><span>' + cluster.getChildCount() + '</div><span>',
+                                               className: 'marker-cluster'
+                                             });
+                                           }")))
+
+
+
+
+```
+
+## Niveau sonore et nombre de secondes enregistrées en France
+```{r, comment="", message = FALSE, warning = FALSE}
+ load("/Volumes/BELLOIS/Tableau/shit.RData")
+
+couleurs <- colorNumeric("Oranges"
+                         , data$Bruits, n = 2)
+m <- leaflet(data) %>% addTiles()%>%setView(lng = 1.5533600, lat = 47.0340504803899, zoom = 5.5)  %>%
+addCircleMarkers(lng = ~Longitude, lat = ~Latitude, weight = 1,
+                   radius = ~(((`Population`)^(1/4))), popup = ~paste(toupper(Ville), ":", "<strong>",`Population`,"</strong>"," enregistrements/ habitant / ","<strong>", round(Bruits,2), "DB</strong>"),
+                   color = ~couleurs(Bruits), fillOpacity = 0.9 )%>%
+  addLegend(pal = couleurs, values = ~Bruits, opacity = 0.9)
+m
+```
+
+</br>
+
+Ici l'opacité de la couleur représente le niveau sonore tandis que la taille des ronds représente le nombre de secondes enregistrées.  
+Nous observons deux pôles de données, un premier en région parisienne et un second dans la région lyonnaise. Nous pouvons aussi voir que la grande majorité des données de la Bretagne se situe sur ses côtes.
+
+</br>
+
+## Niveau sonore et nombre de secondes enregistrées en France par habitant
+```{r, comment="", message = FALSE, warning = FALSE}
+couleurs <- colorNumeric("Greens"
+                         , data$Bruits, n = 2)
+m <- leaflet(data) %>% addTiles()%>%setView(lng = 1.5533600, lat = 47.0340504803899, zoom = 5.5)  %>%
+addCircleMarkers(lng = ~Longitude, lat = ~Latitude, weight = 1,
+                   radius = ~(((`Enregistrement/habiatnt`)^(1/2)*80)), popup = ~paste(toupper(Ville), ":", "<strong>",`Enregistrement/habiatnt`,"</strong>"," enregistrements/ habitant / ","<strong>", round(Bruits,2), "DB</strong>"),
+                   color = ~couleurs(Bruits), fillOpacity = 0.9 )%>%
+  addLegend(pal = couleurs, values = ~Bruits, opacity = 0.9)
+m
+```
+
+</br>
+
+Ici l'opacité de la couleur représente le niveau sonore tandis que la taille des ronds représente le nombre de secondes enregistrées par habitant.  
+Elle permet de représenter géographiquement la contribution des communes à la collecte des données en effaçant le facteur taille de la population.  
+Ainsi le nombre de secondes enregistrées à Paris n'est pas si important par rapport à sa population. Et par exemple quelques villes de l'est ont un nombre de secondes enregistrées important par rapport à leur nombre d'habitants.
+
+</br>
+
+## Moyenne du niveau sonore dans chaque région et département
+
+</br>
+
+Quelles sont les régions les plus bruyantes ?  
+Le niveau sonore est représenté par l'opacité de la couleur.
+```{r, comment="", message = FALSE, warning = FALSE}
+library(highcharter)
+highchart(type = 'map') %>%
+      hc_add_series(
+        mapData = download_map_data("countries/fr/custom/fr-all-mainland"), data = ds.rg, joinBy = c("hc-a2", "code"),
+        borderWidth = 0.8, dataLabels = list(useHTML = TRUE,color =  '#FFFFFF',enabled = TRUE, format = "<strong>{point.name}</strong>"),
+        tooltip = list( 
+          useHTML = TRUE,
+          pointFormat = paste0("<b>{point.stlabel}</b><br>",
+                               "<b style=\"color:#1874CD\">Bruit:</b><strong> {point.value} dB</strong><br>"
+          ),
+          footerFormat = "</p>"
+        )) %>%
+      hc_mapNavigation(enabled = TRUE) %>%
+      hc_title(text = "Moyenne du niveau de bruit par région et par département") %>%
+      hc_plotOptions(map = list(regions = list(hover = list(color = '#FFFFFF')))) %>%
+      hc_colorAxis(minColor = "#FFFFFF", maxColor = "#1E30FF") %>%
+      hc_legend(enabled = TRUE) %>%
+      hc_exporting(enabled = TRUE)%>%
+      hc_mapNavigation(enabled = TRUE) %>%
+      hc_drilldown(
+        series = series.list,
+        allowPointDrilldown = TRUE,
+        activeDataLabelStyle = list(
+          color =  '#FFFFFF',
+          textDecoration = 'none'
+        )
+      ) 
+```
+
+
+
+
+
+

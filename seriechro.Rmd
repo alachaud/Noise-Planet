@@ -1,0 +1,94 @@
+---
+title: "Série chronologique"
+output: 
+  html_document:
+    fig_width: 7
+    fig_height: 6
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+    code_folding: hide
+---
+
+![](images/noise_planet.png)
+
+```{r, comment="", message=FALSE, warning=FALSE, echo=FALSE, include=FALSE}
+#essai
+#install.packages("sf", repos = "http://cran.us.r-project.org")
+#install.packages("geojsonio", repos = "http://cran.us.r-project.org")
+library(sf)
+library(geojsonio) # geojson_read()
+```
+
+```{r, comment="", message=FALSE, warning=FALSE, echo=FALSE, include=FALSE}
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg <- "Bretagne"
+ledept <- "Morbihan"
+nomf <- paste(lepays, lareg, ledept, sep = "_")
+pointsmorb <- st_read(paste0(nomf, ".tracks.geojson"))
+```
+
+
+```{r, comment="", message = FALSE, warning = FALSE, echo = FALSE, include=FALSE}
+#Choisir les donnees recentes (a partir de septembre 2017)
+pointsmorb$time_ISO8601<-as.Date(pointsmorb$time_ISO8601)
+pm9 <- pointsmorb
+#compter le nombre d'enregistrement par journ?e
+nb<-c()
+debut=as.Date("2017-09-01")
+m=max(pm9$time_ISO8601)
+temps<-seq(1,floor((m-debut)/(604800*1000)))
+for (i in seq.Date(debut, m, by = "month")){
+  b<-c()
+  b<-pm9$pk_track[pm9$time_ISO8601>=i & pm9$time_ISO8601<i+30]
+  nb<-c(nb,length(unique(b)))
+}
+```
+
+```{r echo=FALSE}
+library(htmltools)
+```
+
+</br>
+</br>
+
+## Analyse de l'utilisation de l'application par les contributeurs
+
+</br>
+</br>
+```{r, comment="", message = FALSE, warning = FALSE, echo = TRUE}
+#install.packages("highcharter", repos = "http://cran.us.r-project.org")
+#install.packages("forecast", repos = "http://cran.us.r-project.org")
+library(highcharter)
+library(forecast)
+timeserie<-ts(nb,start=c(2017,09,01),freq=12)
+
+#hchart(acf(timeserie))
+
+avant<-window(timeserie,end=c(2018,5))
+apres<-window(timeserie, start=c(2018,5))
+
+laTSLiSi <- HoltWinters(avant, alpha=0.6, beta=FALSE, gamma=FALSE)
+hc<-hchart(forecast(laTSLiSi, h = 3))
+
+hc$x$hc_opts$yAxis$min<-0
+hc$x$hc_opts$yAxis$title<-list(text = "Nombre d'enregistrements")
+hc$x$hc_opts$title<-list(text = "Nombre d'enregistrements dans le Morbihan depuis Septembre 2017 ")
+hc$x$hc_opts$subtitle<-list(text = "Prevision avec un niveau de confiance de 80 % et 95 %")
+h<-hc$x$hc_opts$series[[3]]
+hc$x$hc_opts$series[[3]]<-hc$x$hc_opts$series[[4]]
+hc$x$hc_opts$series[[4]]<-h
+hc$x$hc_opts$series[[3]]$color<-"cyan"
+hc$x$hc_opts$series[[4]]$color<-"deepskyblue"
+hc$x$hc_opts$series[[3]]$fillOpacity<-0.1
+hc$x$hc_opts$series[[4]]$fillOpacity<-0.99
+
+hc
+```
+
+</br>
+
+Cette série chronologique représente le nombre d'enregistrement effectué par mois.  
+Le nombre d'enregistrement est exceptionnel en septembre, cela est sûrement dû au lancement de l'application. Ce nombre décroit jusqu'à la fin de l'année 2017 avant de rebondir et atteindre environ 20 enregistrements par mois.
+

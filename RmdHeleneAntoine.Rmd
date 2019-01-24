@@ -1,0 +1,345 @@
+---
+title: "Etude statistique"
+output: 
+  html_document:
+    fig_width: 7
+    fig_height: 6
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+    code_folding: hide
+---
+
+```{r, comment="", message = FALSE, warning = FALSE, echo = FALSE, include=FALSE}
+#Chunk anti-bug
+#install.packages("RDCOMClient", repos = "http://www.omegahat.org/R")
+#install.packages("R2PPT", repos = "http://cran.us.r-project.org")
+knitr::opts_chunk$set(error = TRUE)
+chooseCRANmirror(graphics = FALSE, ind = 1)
+```
+
+![](images/noise_planet.png)
+  
+  
+  
+```{r comment="", message = FALSE, warning = FALSE ,include=FALSE}
+#Chunk préparation
+
+knitr::opts_chunk$set(cache=TRUE)
+knitr::opts_chunk$set(echo =FALSE)
+knitr::opts_knit$set(root.dir = gsub("/siteweb","/France 4 Juin",getwd()))
+# knitr::opts_chunk$set(fig.width = 800, fig.height = 600)
+library(rmarkdown)
+library(rgdal)
+library(geojsonio) # geojson_read()
+library(sp)
+library(maptools)
+library(ggplot2)
+#library(tm) # text mining
+#library(RColorBrewer)
+#library(wordcloud) # nuage de mots
+#library(plotly) # plot_ly()
+```
+
+
+```{r, comment="", message = FALSE, warning = FALSE, include=FALSE}
+#Chunk importation des données
+
+knitr::opts_chunk$set(cache=TRUE)
+knitr::opts_chunk$set(echo =FALSE)
+knitr::opts_knit$set(root.dir = gsub("/siteweb","/France 4 Juin",getwd()))
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+lepays <- "France"
+lareg  <- "Bretagne"
+ledpt  <- "Morbihan"
+nomf   <- paste(lepays, lareg, ledpt, sep="_")
+# sp : SpatialPointsDataFrame
+areas  <- geojson_read(paste0(nomf, ".areas.geojson"),  what = "sp")
+points <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp") 
+tracks <- geojson_read(paste0(nomf, ".tracks.geojson"), what = "list")
+#tracks
+areas  <- as.data.frame(areas)
+points <- as.data.frame(points)
+tracks <- as.list(tracks)
+#install.packages("sf")
+library(sf)
+areas <- st_read(paste0(nomf, ".areas.geojson"))
+points <- st_read(paste0(nomf, ".points.geojson"))
+tracks <- st_read(paste0(nomf, ".tracks.geojson"))
+```
+
+```{r, comment="", message = FALSE, warning = FALSE}
+#mettre chaque variable dans une matrice/liste
+t<-length(tracks$features) #taille de la bdn 
+#mettre dans une matrice toutes les variable de propriété
+v=v2=v3=v4=v5=v6=v7=v8=v9<-c()
+l<-list()
+for (i in 1:t) {
+  v<-c(v,tracks$features[[i]]$properties$pk_track)
+  v2<-c(v2,tracks$features[[i]]$properties$time_ISO8601)
+  v3<-c(v3,tracks$features[[i]]$properties$time_epoch)
+  v4<-c(v4,tracks$features[[i]]$properties$track_uuid)
+  v5<-c(v5,tracks$features[[i]]$properties$gain)
+  v6<-c(v6,tracks$features[[i]]$properties$noise_level)
+  v7<-c(v7,tracks$features[[i]]$properties$pleasantness)
+  v8<-c(v8,tracks$features[[i]]$geometry$type)
+  
+  if (length(tracks$features[[i]]$properties$tags)>0){
+    vec<-c()
+    for (j in 1:(length(tracks$features[[i]]$properties$tags))){
+      vec<-c(vec,unlist(tracks$features[[i]]$properties$tags[j]))
+    }
+    l<-append(l,list(vec))
+  } 
+  else {
+    l<-append(l,list(c()))
+  }
+}
+p<-cbind(v,v2,v3,v4,v5,v6,v7,v8,l)
+tracks2<-as.data.frame(p)
+#names(tracks2)<-c("pk_track","time_ISO8601","time_epoch","track_uuid","gain","noise_level","pleasantness","type","tags")
+tracks3<-unique(tracks2)
+```
+
+```{r echo=FALSE}
+library(htmltools)
+```
+
+</br>
+</br>
+
+## Analyse du niveau sonore dans le Morbihan
+Voici une analyse portant sur les données du Morbihan, le niveau sonore et la durée d'enregistrement sont nos deux axes de travaux.
+
+</br>
+
+### Niveau sonore moyen dans un area
+Résultats issus de la variable LAeq. Cette variable représente le niveau sonore moyen dans un area. C'est un bon indicateur du niveau perçu.
+```{r, comment="", message = FALSE, warning = FALSE, echo = TRUE}
+# Stocker la variable laeq dans a
+a <-data.frame(areas$laeq)
+# Moyenne, min et max de laeq
+mean = mean(a[,1])
+min = min(a[,1])
+max = max(a[,1])
+# Mise en forme dans un tableau
+resultat = data.frame(Minimum = min, Moyen = mean, Maximum = max, row.names = c("Niveau sonore (en decibel)"))
+resultat
+hist(areas$laeq, xlab = "Niveau sonore LAeq", ylab = "Nombre d'enregistrements", col = "#3886D2", main = "Distribution du niveau sonore")
+```
+
+</br>
+</br>
+
+### Niveau sonore mesuré sur un point
+Résultats issus de la variable noise_level. Cette variable représente le niveau sonore mesuré sur un point donc mesuré chaque seconde. Comment cette variable est-elle distribuée ?
+```{r, comment="", message = FALSE, warning = FALSE, echo = TRUE}
+pnl <- data.frame(points$noise_level)
+meanpnl <- mean(pnl[,1])
+minpnl <- min(pnl[,1])
+maxpnl <- max(pnl[,1])
+resultatpnl <- data.frame(Minimum = minpnl,Moyen = meanpnl, Maximum = maxpnl, 
+                          row.names =c("Niveau sonore (en decibel)"))
+resultatpnl
+hist(points$noise_level, xlab="Niveau sonore Noise_level", ylab="Nombre de points", main = "Distribution du niveau sonore", col = "#3886D2" )
+
+```
+
+Ici la distribution est symétrique et centrée autour des 55-60 dB. Le niveau sonore s'étend de 13,75 dB à 111,60 dB.
+
+```{r, comment="", message = FALSE, warning = FALSE, echo = TRUE}
+boxplot(pnl, col = "#3886D2", main = "Boîte à moustache de la variable Noise_level")
+```
+</br>
+
+D'après la boite à moustache ci-dessus, le niveau sonore médian de tous les points du Morbihan est 60 dB.
+
+</br>
+
+### Moyenne du bruit selon l'heure de la journée dans le Morbihan
+Sur le graphique ci-dessous nous retrouvons en abscisse les heures de la journée et en ordonnée la moyenne du niveau sonore.
+Il faut savoir qu'entre 2h et 6h aucun enregistrement n'a été efffectué pour le moment, cela est volontairement symbolisé par deux lignes verticales pointillées. Autrement le niveau sonore augmente tout au long de la journée et atteint un pic dans la classe 20h-22h.
+```{r, comment="", message = FALSE, warning = FALSE, echo = TRUE}
+setwd(gsub("/siteweb","/France 4 Juin",getwd()))
+
+pointsmorb <- geojson_read(paste0(nomf, ".points.geojson"), what = "sp")
+
+#Choisir les donnees recentes (a partir de septembre 2017)
+pm9 <- pointsmorb[as.numeric(as.vector(pointsmorb$time_epoch))>1504224000000,]
+
+#Nombre de millisecondes 
+pm9$time_epoch<-as.numeric(as.vector(pm9$time_epoch))
+
+#Nombre de jours depuis le 1er janvier 1970 00:00:00 GMT 
+te0<-pm9$time_epoch/86400000
+
+#Nombre de millisecondes de chaque journée, correspondant à l'heure où a été effectué l'enregistrement
+#Nombre total de ms - nombre de ms correspondant ? ... jours
+te1<-pm9$time_epoch-pm9$time_epoch%/%86400000*86400000
+
+
+#min(te1) correspond ? 0,6727777778 heure, soit 00h40
+#min(te1)
+
+#min(te1) correspond ? 23,766388889 heures, soit 23h46
+#max(te1)
+
+#Créer des classes : regrouper les données en fonctions de l'heure
+#On choisit de prendre 12 classes de 2h
+
+#Classe 0h-2h
+h0_2 <- te1[te1<2*3600000]
+#sort(h0_2)
+#Classe 2h-4h
+h2_4 <- te1[te1>=2*3600000 & te1<4*3600000]
+#sort(h2_4)
+#Classe 4h-6h
+h4_6 <- te1[te1>=4*3600000 & te1<6*3600000]
+#sort(h4_6)
+#Classe 6h-8h
+h6_8 <- te1[te1>=6*3600000 & te1<8*3600000]
+#sort(h6_8)
+#Classe 8h-10h
+h8_10 <- te1[te1>=8*3600000 & te1<10*3600000]
+#sort(h8_10)
+#Classe 10h-12h
+h10_12 <- te1[te1>=10*3600000 & te1<12*3600000]
+#sort(h10_12)
+#Classe 12h-14h
+h12_14 <- te1[te1>=12*3600000 & te1<14*3600000]
+#sort(h12_14)
+#Classe 14h-16h
+h14_16 <- te1[te1>=14*3600000 & te1<16*3600000]
+#sort(h14_16)
+#Classe 16h-18h
+h16_18 <- te1[te1>=16*3600000 & te1<18*3600000]
+#sort(h16_18)
+#Classe 18h-20h
+h18_20 <- te1[te1>=18*3600000 & te1<20*3600000]
+#sort(h18_20)
+#Classe 20h-22h
+h20_22 <- te1[te1>=20*3600000 & te1<22*3600000]
+#sort(h20_22)
+#Classe 22h-00h
+h22_0 <- te1[te1>=22*3600000]
+#sort(h22_0)
+
+classeheure <- c(h0_2,h2_4,h4_6,h6_8,h8_10,h10_12,h12_14,h14_16,h16_18,h18_20,h20_22,h22_0)
+#classeheure
+
+#mean(pm9$noise_level)
+
+#Moyenne du bruit en fonction de l'heure
+
+#Moyenne du niveau de bruit entre 00h et 2h
+mn0_2 <- mean(pm9$noise_level[te1<2*3600000])
+#mn0_2
+#Moyenne du niveau de bruit entre 2h et 4h
+mn2_4 <- mean(pm9$noise_level[te1>=2*3600000 & te1<4*3600000])
+#mn2_4
+#Moyenne du niveau de bruit entre 4h et 6h
+mn4_6 <- mean(pm9$noise_level[te1>=4*3600000 & te1<6*3600000])
+#mn4_6
+#Moyenne du niveau de bruit entre 6h et 8h
+mn6_8 <- mean(pm9$noise_level[te1>=6*3600000 & te1<8*3600000])
+#mn6_8
+#Moyenne du niveau de bruit entre 8h et 10h
+mn8_10 <- mean(pm9$noise_level[te1>=8*3600000 & te1<10*3600000])
+#mn8_10
+#Moyenne du niveau de bruit entre 10h et 12h
+mn10_12 <- mean(pm9$noise_level[te1>=10*3600000 & te1<12*3600000])
+#mn10_12
+#Moyenne du niveau de bruit entre 12h et 14h
+mn12_14 <- mean(pm9$noise_level[te1>=12*3600000 & te1<14*3600000])
+#mn12_14
+#Moyenne du niveau de bruit entre 14h et 16h
+mn14_16 <- mean(pm9$noise_level[te1>=14*3600000 & te1<16*3600000])
+#mn14_16
+#Moyenne du niveau de bruit entre 16h et 18h
+mn16_18 <- mean(pm9$noise_level[te1>=16*3600000 & te1<18*3600000])
+##mn16_18
+#Moyenne du niveau de bruit entre 18h et 20h
+mn18_20 <- mean(pm9$noise_level[te1>=18*3600000 & te1<20*3600000])
+#mn18_20
+#Moyenne du niveau de bruit entre 20h et 22h
+mn20_22 <- mean(pm9$noise_level[te1>=20*3600000 & te1<22*3600000])
+#mn20_22
+#Moyenne du niveau de bruit entre 22h et 00h
+mn22_0 <- mean(pm9$noise_level[te1>22*3600000])
+#mn22_0
+
+
+moybruit <- c(mn0_2,mn2_4,mn4_6,mn6_8,mn8_10,mn10_12,mn12_14,mn14_16,mn16_18,mn18_20,mn20_22,mn22_0)
+temps<-seq(1,24,2)
+moybruit2 <- data.frame(temps,moybruit)
+#moybruit2
+#mode(temps)
+#Ne pas tenir compte des valeurs manquantes
+moybruit2<- moybruit2[is.na(moybruit2$moybruit)==FALSE,]
+
+#Graphique
+#plot(moybruit, main = "Moyenne du niveau sonore en fonction des classes d'heure", xlab = "Temps", ylab = "dbA", las=1, pch = 3, type="b")
+```
+  
+    
+```{r, comment="", message = FALSE, warning = FALSE, echo = TRUE}
+library(ggplot2)
+library(plotly)
+ggplotly(ggplot(moybruit2,aes(x =temps, y = moybruit ))+geom_line()+ geom_vline(xintercept=c(2,6), linetype="dotted")) 
+```
+
+</br>
+</br>
+
+## Analyse des durées d'enregistrements dans le Morbihan
+
+</br>
+
+### Durée des enregistrements
+Résultats issus de la variable time_length. Cette variable représente la durée d'enregistrement d'une track.
+Les utilisateurs du Morbihan préfèrent des enregistrements plutôt courts ou des enregistrements plutôt longs ?
+
+```{r, comment="", message = FALSE, warning = FALSE, echo = TRUE}
+t<-dim(tracks) #nombre de tracks dans la base de données
+lt1 <- 0
+for (i in 1:t[1]) {
+  lt1 <- tracks$time_length[i]+lt1
+}
+moy<-lt1/t[1]
+minmes<-min(tracks$time_length)
+maxmes<-max(tracks$time_length)
+mediane<-median(tracks$time_length)
+resultat1 <- data.frame (Minimum=minmes,Mediane=mediane, Moyenne=moy, Maximum=maxmes, row.names=c("Durée d'enregistrement (en seconde)"))
+resultat1
+```
+
+```{r, comment="", message = FALSE, warning = FALSE, echo = TRUE}
+# Histogramme de la variable tracks$time_length
+hist(tracks$time_length, xlab = "durée d'enregistrement (en seconde)", ylab = "nombre d'enregistrements", col = "#3886D2", main = "Distribution de la durée des enregistrements")
+```
+
+</br>
+Nous pouvons observer que l'extreme majorité des données se situe sous les 500s soit des enregistrements de moins de 8 minutes. Cependant on observe quelques valeurs extrêmement grandes jusqu'à 6900s. Cela correspond à des enregistrements atteignant les 2h !
+</br>
+</br>
+
+### Nombre de secondes de mesuré dans un area
+Résultats issus de la variable measure_count. Cette variable représente le nombre de secondes de mesure d'un area.
+```{r, comment="", message = FALSE, warning = FALSE, echo = TRUE}
+# Stocker la variable measure_count dans b
+b <-data.frame(areas$measure_count)
+# Moyenne, min et max de measure_count
+mean2 = mean(b[,1])
+min2 = min(b[,1])
+max2 = max(b[,1])
+med = median(b[,1])
+# Mise en forme dans un tableau
+resultat2 = data.frame(Minimum = min2,Median=med, Moyen = mean2, Maximum = max2, row.names = c("Nombre de secondes"))
+resultat2
+```
+
+```{r, comment="", message = FALSE, warning = FALSE, echo = TRUE}
+# Histogramme de la variable measure_count
+hist(b[b[,1]<300, 1], xlab = "nombre de secondes mesurées", ylab = "nombre d'areas", col = "#3886D2", main = "Distribution du nombre de secondes enregistrées dans une area")
+```
+

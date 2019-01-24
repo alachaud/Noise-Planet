@@ -1,0 +1,99 @@
+---
+title: "Noise-Planet"
+output: html_document
+---
+
+
+![](images/noise_planet.png)
+```{r echo=FALSE}
+library(htmltools)
+```
+</br>
+
+## Contexte
+
+
+L'application Android NoiseCapture a été lancée officiellement le 1er septembre 2017 sous Android. Elle est le fruit du projet Noise-Planet. Ce projet est orchestré par deux centres de recherche du CNRS : Lab-STICC et Ifsttar. Ils s'inscrivent tous deux dans une volonté de mieux cerner le bruit pour pouvoir prévenir les risques encourus par celui-ci. Nos études visent à améliorer la visualisation des données récoltées par l'application.
+Ce site web illustre les données de l'application en 5 thématiques :
+ 
+</br>
+
+[stats]: RmdHeleneAntoine.html "Lien vers les statistiques"
+[seriechro]: seriechro.html "Lien vers les séries chronologiques"
+[carte]: Carte68db.html "Lien vers les cartes"
+[tags]: AD-v2.html "Lien vers les tags"
+[pays]: CompteurPays.html "Lien vers le compteur de pays"
+
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+[<img src= "images/STATISTIQUE.png", width="110"/>][stats]
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+[<img src="images/SERIECHRO.png", width="110"/>][seriechro]
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+[<img src="images/CARTE.png", width="110"/>][carte]
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+[<img src="images/TAGS.png", width="110"/>][tags]
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+[<img src="images/PAYS.png", width="80"/>][pays]
+
+
+</br>
+</br>
+  Il existe 3 types de fichiers : areas, points et tracks. Ces fichiers sont chargés sous forme de dataframe pour les areas et les points, sous forme de liste pour les tracks car celle-ci est de longueur variable.
+
+</br>
+
+## Les 3 systèmes de données {.tabset .tabset-pills}
+
+### Système Points
+
+Un point correspond à une mesure du niveau sonore sur une seconde. Si plusieurs points sont reliés, ils forment une track.
+
+</br>
+
+### Système Tracks
+
+Une track représente l'ensemble des points mesurés. Elle représente également le chemin qu'a parcouru l'utilisateur pendant sa mesure. Une track peut traverser différents areas.
+
+</br>
+
+### Système Areas
+
+Un area correspond à un hexagone où l'on y trouve des tracks et donc des points.
+
+</br>
+
+## Liens officiels
+Vers le site [Noise-Planet](http://noise-planet.org/)  
+Vers l'[application Andoid](http://noise-planet.org/noisecapture.html)  
+Vers [Noise Maps](http://noise-planet.org/map_noisecapture/index.html#5/47.175/12.524)  
