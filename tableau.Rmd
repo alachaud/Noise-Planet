@@ -1,0 +1,324 @@
+---
+title: "France"
+output: 
+  flexdashboard::flex_dashboard:
+    logo: logo.jpg
+    vertical_layout: fill
+    theme: spacelab
+runtime : shiny 
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(shiny)
+library(geojsonio)#import
+library(spData)#import
+library(dplyr)#import
+library(sf)#import
+library(tidyverse)
+library(ggplot2)
+library(plotly)
+library(wordcloud) # nuage de mots
+library(tm) # text mining
+library(highcharter)
+library(leaflet)
+library(readr)
+library("rgdal")
+library(forecast)
+load("environnement1.RData")
+```
+
+Inputs {.sidebar}
+=====================================
+
+```{r setupe global}
+selectInput(label="Region",inputId = "regions",choices = c("", "Alsace","Aquitaine","Auvergne","Basse-Normandie","Bourgogne","Bretagne","Centre","Champagne-Ardenne","Corse","Franche-Comte","Haute-Normandie","Ile-de-France","Languedoc-Roussillon","Limousin","Lorraine","Midi-Pyrenees","Nord-Pas-de-Calais","Pays de la Loire","Picardie","Poitou-Charentes","Provence-Alpes-Cote d'Azur","Rhone-Alpes","Toutes"))
+
+conditionalPanel(
+condition = "input.regions!='' & input.regions!='Toutes' ",
+renderUI({
+  depart=switch(gsub("Ã´","o",gsub("Ã©","e",gsub("[-' ]","",input$regions))),Alsace=c("","Bas-Rhin","Haut-Rhin","Tous"),
+                Aquitaine=c("","Dordogne","Gironde","Landes","Lot-et-Garonne","Pyrenees-Atlantiques","Tous"),
+                Auvergne=c("", "Allier", "Cantal","Haute-Loire","Puy-de-DÃ´me","Tous"),
+                BasseNormandie=c("","Calvados","Manche","Orne","Tous"),
+                Bourgogne=c("","Yonne", "Cote-d'Or", "Nievre","Saone-et-Loire","Tous"),
+                Bretagne=c("","Cotes-d'Armor", "Finistere", "Ille-et-Vilaine","Morbihan","Tous"),
+                Centre=c("","Cher","Eure-et-Loir","Indre","Indre-et_Loir","Loiret","Loir-et-Cher","Tous"),
+                ChampagneArdenne=c("", "Ardennes", "Aube","Marne","Haute-Marne","Tous"),
+                Corse=c("","Corse-du-Sud","Haute-Corse","Tous"),
+                FrancheComte=c("","Doubs","Jura", "Haute-Saone","Territoire de Belfort","Tous"),
+                HauteNormandie=c("", "Eure","Seine-Maritime","Tous"),
+                IledeFrance=c("","Paris","Seine-et-Marne","Yvelines","Essonne","Hauts-de-Seine","Seine-Saint-Denis","Val-de-Marne","Val-d'Oise","Tous"),
+                LanguedocRoussillon=c("","Aude", "Gard", "Herault","Lozere","Pyrenees-Orientales","Tous"),
+                Limousin=c("","Correze","Creuse","Haute-Vienne","Tous"),
+                Lorraine=c("","Meurthe-et-Moselle","Meuse","Moselle","Vosges","Tous"),
+                MidiPyrenees=c("","Ariege","Aveyron","Haute-Garonne","Gers","Lot","Hautes-Pyrenees","Tarn","Tarn-et-Garonne","Tous"),
+               NordPasdeCalais=c("","Nord","Pas-de-Calais","Tous"),
+               PaysdelaLoire=c("","Loire-Atlantique","Maine-et-Loire","Mayenne","Sarthe","Vendee","Tous"),
+               Picardie=c("","Aisne","Oise","Somme","Tous"),
+               PoitouCharentes=c("","Charente","Charente-Maritime","Deux-Sevres","Vienne","Tous"),
+               ProvenceAlpesCotedAzur=c("",	"Alpes-de-Haute-Provence","Hautes-Alpes","Alpes-Maritimes","Bouches-du-Rhone","Var","Vaucluse","Tous"),
+               RhoneAlpes=c("","Ain","Ardeche","Drome","Isere","Loire","Rhone","Savoie","Haute-Savoie","Tous")
+               
+                
+  )
+  selectInput("depart", "Departement", depart)
+})
+)
+region<-reactive(
+  input$regions
+)
+dep<-reactive(
+  input$depart
+)
+
+
+point<-reactive({if (region()=="" | region()=="Toutes"){
+  return(points)}
+  else{
+  showNotification("Importation des donne...",duration = 10,type = "warning")
+  if(dep()!="Tous" & dep()!=""){
+    pointstab<-points[ Unaccent(tolower(points$region))==Unaccent(tolower(region())) & Unaccent(tolower(points$departement))==Unaccent(tolower(dep())), ]
+    showNotification("Importation des donne...termine",duration = 10,type = "warning")
+    return(pointstab)}
+  else {
+    pointstab<-points[Unaccent(tolower(points$region))==Unaccent(tolower(region())), ]
+    showNotification("Importation des donne...termine",duration = 10,type = "warning")
+    return(pointstab)
+  }
+}})
+
+track<-reactive({ if (region()=="" | region()=="Toutes"){
+  return(tracks)}
+  else{
+    showNotification("Importation des donne...",duration = 10,type = "warning")
+    if(dep()!="Tous" & dep()!=""){
+      trackstab<-tracks[Unaccent(tolower(tracks$region))==Unaccent(tolower(region())) & Unaccent(tolower(tracks$departement))==Unaccent(tolower(dep())), ]
+      showNotification("Importation des donne...termine",duration = 10,type = "warning")
+      return(trackstab)}
+    else {
+      trackstab<-tracks[Unaccent(tolower(tracks$region))==Unaccent(tolower(region())), ]
+      showNotification("Importation des donne...termine",duration = 10,type = "warning")
+      return(trackstab)
+    }
+}})
+area<-reactive({ if (region()=="" | region()=="Toutes"){
+  return(areas)}
+  else{
+  if(dep()!="Tous" & dep()!=""){
+  showNotification("Importation des donne...",duration = 10,type = "warning")
+  areastab<-areas[Unaccent(tolower(areas$region))==Unaccent(tolower(region())) & Unaccent(tolower(areas$departement))==dep(), ]
+  showNotification("Importation des donne...termine",duration = 10,type = "warning")
+  return(areastab)}
+  else {
+  areastab<-areas[Unaccent(tolower(areas$region==region())), ]
+  showNotification("Importation des donne...termine",duration = 10,type = "warning")
+  return(areastab)
+  }
+}})
+data1<-reactive({
+  return(data)
+})
+
+```
+
+Conditions d'enregistrement {data-orientation=column}
+===================================== 
+Column {data-width=550}
+-------------------------------------
+    
+### Conditions d'enregistrement
+    
+```{r}
+intext<-reactive({ 
+  cptot=cptint=0
+for (i in 1:dim(track())[1]){
+  if(length(track()$tags[i][[1]])>0){
+    cptot=cptot+1
+    if ("indoor"%in%track()$tags[i][[1]]){
+      cptint=cptint+1
+    }
+  }
+}
+return(c(cptint,(cptot-cptint)))
+})
+renderHighchart(
+  highchart()%>% 
+    hc_chart(type="pie")%>%
+    hc_add_series_labels_values(labels = c("Mobile","Immobile"), values = c(dim(track()[track()$type!="POINT",])[1],dim(track()[track()$type=="POINT",])[1]),name = "Enregistrement mobile et immobile",size='60%',center = list('75%','50%'))%>%
+    hc_add_series_labels_values(labels = c("A l'intérieur","A l'exterieur"), values = intext(),name = "E",size='60%',center = list('25%','50%'),colors = c("#999999","#FFCC00"))%>%hc_tooltip(pointFormat = paste('{point.y} votes<br/><b>{point.percentage:.1f}%</b>')) %>%
+   hc_title(text = "Conditions d'enregistrement")
+   )
+
+```
+   
+   
+### Evolution du nombre d'enregistrements
+
+```{r}
+renderHighchart({
+nb<-c()
+debut=as.Date("2017-09-01")
+m=max(point()$time_ISO8601)
+temps<-seq(1,floor((m-debut)/(604800*1000)))
+for (i in seq.Date(debut, m, by = "month")){
+  b<-c()
+  b<-point()$pk_track[point()$time_ISO8601>=i & point()$time_ISO8601<i+30]
+  nb<-c(nb,length(unique(b)))
+}
+titre<-""
+if(region()=="Toutes" | region()==""){titre<-paste("Nombre d'enregistrements en ","France"," depuis septembre 2017 ")}else if (dep()=="Tous" | dep()==""){titre<-paste("Nombre d'enregistrements en ",region()," depuis septembre 2017 ")} else {titre<-paste("Nombre d'enregistrements en ",dep()," depuis septembre 2017 ")}
+timeserie<-ts(nb,start=c(2017,09,01),freq=12)
+avant<-window(timeserie,end=c(2018,5))
+laTSLiSi <- HoltWinters(avant, alpha=0.6, beta=FALSE, gamma=FALSE)
+hc<-hchart(forecast(laTSLiSi, h = 3))
+hc$x$hc_opts$yAxis$min<-0
+hc$x$hc_opts$yAxis$title<-list(text = "Nombre d'enregistrements")
+hc$x$hc_opts$title<-list(text =titre)
+hc$x$hc_opts$subtitle<-list(text = "Previsions avec un niveau de confiance de 80 % et 95 %")
+h<-hc$x$hc_opts$series[[3]]
+hc$x$hc_opts$series[[3]]<-hc$x$hc_opts$series[[4]]
+hc$x$hc_opts$series[[4]]<-h
+hc$x$hc_opts$series[[3]]$color<-"cyan"
+hc$x$hc_opts$series[[4]]$color<-"deepskyblue"
+hc$x$hc_opts$series[[3]]$fillOpacity<-0.1
+hc$x$hc_opts$series[[4]]$fillOpacity<-0.99
+hc$x$hc_opts$series[[1]]$name<-"Serie"
+hc$x$hc_opts$series[[2]]$name<-"Prevision"
+hc
+
+})
+```   
+    
+Column {data-width=450}
+-------------------------------------
+### Nombre de secondes enregistré par habitant
+    
+```{r}
+# renderDataTable(data1())
+renderLeaflet({
+couleurs <- colorNumeric("Greens", data1()$Bruits, n = 2)
+m <- leaflet(data1()) %>% addTiles()%>%setView(lng = 1.5533600, lat = 47.0340504803899, zoom = 5.5)  %>%
+addCircleMarkers(lng = ~Longitude, lat = ~Latitude, weight = 1,
+                   radius = ~(((`Enregistrement/habiatnt`)^(1/2)*80)), popup = ~paste(toupper(Ville), ":", "<strong>",`Enregistrement/habiatnt`,"</strong>"," enregistrements/ habitant / ","<strong>", round(Bruits,2), "DB</strong>"),
+                   color = ~couleurs(Bruits), fillOpacity = 0.9 )%>%
+  addLegend(pal = couleurs, values = ~Bruits, opacity = 0.9)
+m
+})
+
+```
+
+Etude du bruit {data-orientation=column}
+===================================== 
+column{data-width=700}
+-------------------------------------
+    
+### Moyenne des bruits des villes en fonction de l'age moyen de leurs habitants
+    
+```{r}
+classedrilldown<-reactive(unique(agecsp$`age moyen`[which(is.na(agecsp$`age moyen`)==FALSE & Unaccent(tolower(agecsp$`Libellé géographique`)) %in% Unaccent(tolower(point()$ville)))]))
+d2<-reactive({
+bruit<-c()
+for(i in 1:length(classedrilldown())){
+  bruit[i]<-mean(point()$noise_level[Unaccent(tolower(point()$ville))%in% Unaccent(tolower(agecsp$`Libellé géographique`[agecsp$`age moyen` %in% classedrilldown()[i]]))])
+}
+d1<-as.data.frame(cbind(classedrilldown(),bruit),stringsAsFactors = FALSE)
+d1$bruitdrilldown<-as.numeric(d1$bruit)
+d1<-data_frame(
+  agemoyen = classedrilldown(),
+  bruit =bruit)
+return(d1)
+})
+renderPlotly((ggplot(d2(),aes(x=agemoyen,y=bruit))+geom_point()))
+```
+
+
+### Nuage de mots en fonction du niveau de pleasantness
+    
+```{r}
+conditionalPanel(condition ="input.regions!='' & input.depart!='' ", sliderInput(label = "Niveau de pleasantness", inputId = "niveau",min=0,max = 100,step = 25,value = c(0,25)))
+renderPlot ({
+    tags2<-c("")
+    for (i in 1:length(track()$pk_track)) {
+      if (is.na(track()$pleasantness[i])==FALSE){
+        if(track()$pleasantness[i] >= input$niveau[1] & track()$pleasantness[i]<=input$niveau[2]){
+          tags2 <- c(tags2, unlist(track()$tags[i]))
+        }
+      }
+    }
+    t2 <- unlist(tags2)
+    t2 <- t2[t2!="test"]
+    ap.corpus <- Corpus(DataframeSource(data.frame(doc_id="tags", text=t2)))
+    ap.tdm <- TermDocumentMatrix(ap.corpus)
+    ap.m <- as.matrix(ap.tdm)
+    ap.v <- sort(rowSums(ap.m),decreasing=TRUE)
+    ap.d <- data.frame(word = names(ap.v),freq=ap.v)
+    pal2 <- brewer.pal(5,"Dark2")
+    wordcloud(ap.d$word,ap.d$freq, scale=c(4,1), min.freq=0,
+              max.words=5, random.order=FALSE, rot.per=.15, colors=pal2)
+})
+
+``` 
+
+
+column{.tabset}
+-------------------------------------
+
+### dB moyen par région et département 
+
+```{r}
+renderHighchart({
+  highchart(type = 'map') %>%
+      hc_add_series(
+        mapData = download_map_data("countries/fr/custom/fr-all-mainland"), data = ds.rg, joinBy = c("hc-a2", "code"),
+        borderWidth = 0.8, dataLabels = list(useHTML = TRUE,color =  '#FFFFFF',enabled = TRUE, format = "<strong>{point.name}</strong>"),
+        tooltip = list( 
+          useHTML = TRUE,
+          pointFormat = paste0("<b>{point.stlabel}</b><br>",
+                               "<b style=\"color:#1874CD\">Bruit:</b><strong> {point.value} dB</strong><br>"
+          ),
+          footerFormat = "</p>"
+        )) %>%
+      hc_mapNavigation(enabled = TRUE) %>%
+      hc_title(text = "Moyenne du niveau de bruit par region et par departement") %>%
+      hc_plotOptions(map = list(regions = list(hover = list(color = '#FFFFFF')))) %>%
+      hc_colorAxis(minColor = "#FFFFFF", maxColor = "#1E30FF") %>%
+      hc_legend(enabled = TRUE) %>%
+      hc_exporting(enabled = TRUE)%>%
+      hc_mapNavigation(enabled = TRUE) %>%
+      hc_drilldown(
+        series = series.list,
+        allowPointDrilldown = TRUE,
+        activeDataLabelStyle = list(
+          color =  '#FFFFFF',
+          textDecoration = 'none'
+        )
+      ) 
+})
+```   
+  
+### Enregistrements supérieurs à 68 dB
+
+```{r}
+p<-reactive(return(areas[areas$laeq>68,]))
+d<-reactive(return(as.data.frame(unlist(p()$geometry), p()$laeq)))
+p1<- reactive(return(as.data.frame (unlist(d()))))
+carte<-reactive({
+  lng <- c()
+for (i in seq (1,length(p1()$`unlist(d())`),by=14))
+{lng<-c(lng,p1()$`unlist(d())`[i])}
+lat <- c()
+for (i in seq (8,length(p1()$`unlist(d())`),by=14))
+{lat<-c(lat,p1()$`unlist(d())`[i])}
+return(data.frame(lat,lng))
+})
+renderLeaflet({leaflet(carte(), options = leafletOptions(minZoom = 1, maxZoom = 20)) %>% addTiles() %>% addMarkers(
+  clusterOptions = markerClusterOptions(iconCreateFunction =
+                                      JS("
+                                          function(cluster) {
+                                             return new L.DivIcon({
+                                               html: '<div style=\"background-color:rgba(255, 0, 0, 0.75)\"><span>' + cluster.getChildCount() + '</div><span>',
+                                               className: 'marker-cluster'
+                                             });
+                                           }")))})
+```
